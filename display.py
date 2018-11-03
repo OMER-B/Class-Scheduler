@@ -1,11 +1,14 @@
-from utils import Course, Week, hours, days, semesters, database, file
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import utils
+from utils import Course, Week, hours, days, semesters, file
 import sqlite3
 import sys, webbrowser, os
 
 
 def create_database():
     # create a database connection
-    conn = create_connection(database)
+    conn = create_connection(utils.get_db())
     if conn is not None:
         # create projects table
         cn = conn.cursor()
@@ -24,6 +27,9 @@ def create_connection(db_file):
     return None
 
 
+import json
+
+
 def query(cn):
     sys.stdout = open(file, 'w')  # Change stdout to file
     for s in semesters:
@@ -39,8 +45,9 @@ def query(cn):
                     hour = day.getHourAt(h)
                     hour.addCourse(course)
 
-        week.toHTML("HTML")
+        print(week.toHTML())
     webbrowser.open('file://' + os.path.realpath(file))  # open file
+    sys.stdout = sys.__stdout__
 
 
 def main():

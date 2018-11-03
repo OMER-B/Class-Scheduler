@@ -1,9 +1,21 @@
-semesters = ["סמסטר א'", "סמסטר ב'"]
+import random
+import string
+
+semesters = ["סמסטר א'"]
 days = ["ו'", "ה'", "ד'", "ג'", "ב'", "א'"]  # ["א'", "ב'", "ג'", "ד'", "ה'", "ו'"]
 hours = [i for i in range(8, 20)]
 colors = ["#fcfcfc", "#f7f7f7"]
-database = "my.db"
-file = 'file.html'
+
+# database = ''
+database = "database.db"
+file = 'מערכת שעות.html'
+import json
+
+
+def get_db():
+    global database
+    return database
+
 
 class Course:
     def __init__(self):
@@ -18,6 +30,8 @@ class Course:
         self.duration = []
         self.start = []
         self.finish = []
+        self.building = []
+        self.room = []
 
     def get_duration(self):
         if (len(self.hour) != len(self.day)):
@@ -38,7 +52,12 @@ class Course:
                + "<br />" \
                + "<span style=\"font-weight:bold; font-size:16px;\">" + self.name + " - " + self.type + "</span>" \
                + "<br />" \
-               + "<span style =\"font-size: 13px;\">" + self.lecturers.__str__() + "</span>"
+               + "<span style =\"font-size: 13px;\">" + self.lecturers.__str__() + "</span>" \
+               + "<br />" \
+               + "<span style =\"font-size: 13px;\">בניין " + self.building.__str__() \
+               + " חדר " \
+               + self.room.__str__() \
+               + "</span>"
 
     def fromSQL(self, sql):
         self.code = sql[0]
@@ -51,10 +70,15 @@ class Course:
         self.start = sql[7]
         self.finish = sql[8]
         self.duration = sql[9]
+        self.building = sql[10]
+        self.room = sql[11]
         return self
 
     def getColor(self):
         return self.name.__hash__()
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 
 class Hour:
@@ -78,6 +102,10 @@ class Hour:
             Hour.id = Hour.id + 1
         str += "</tr>"
         return str
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
 
 
 class Day:
@@ -103,6 +131,10 @@ class Day:
         else:
             return 0
 
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
+
 
 class Week:
     def __init__(self):
@@ -111,18 +143,18 @@ class Week:
     def getDayAt(self, day):
         return self.days[Day.dayToNum(day)]
 
-    def toHTML(self, num):
+    def toHTML(self):
         print("<html>")
         print(HTMLScripts())
-        print ("<body>"
-               "<table style=\"text-align: right; font-family: calibri;\">")
+        print("<body>"
+              "<table style=\"text-align: right; font-family: calibri;\">")
         for i, hour in enumerate(hours):
             if (i == 0):
                 print("<tr>")
                 print("<td>")
                 print("</td>")
                 for day in days:
-                    print("<td align=\"center\" style=\"font-weight: bold;\">")
+                    print("<td align=\"center\" style=\"font-weight: bold; background-color: #fafafa; color: black\">")
                     print("יום " + day)
                     print("</td>")
                 print("</tr>")
@@ -130,7 +162,7 @@ class Week:
 
             for j, day in enumerate(days):
                 if (j == 0):
-                    print("<td>")
+                    print("<td align=\"center\" style=\"font-weight: bold; background-color: #fafafa; color: black\">")
                     print(str(hour) + ":00")
                     print("</td>")
                 print("<td style=\"background-color:" + colors[i % 2 == 0] + ";\" align=\"right\">")
@@ -138,9 +170,19 @@ class Week:
                 print(self.getDayAt(day).getHourAt(hour).toHTML())
                 print("</table>")
                 print("</td>")
+
+
+            print("<td align=\"center\" style=\"font-weight: bold; background-color: #fafafa; color: black\">")
+            print(str(hour) + ":00")
+            print("</td>")
+
             print("</tr>")
 
         print("</table></body></html>")
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
 
 
 def HTMLScripts():
